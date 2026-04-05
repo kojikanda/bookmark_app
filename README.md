@@ -35,7 +35,25 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## 🛠 使用技術 / Tech Stack
+<br>
+
+---
+
+<br>
+
+## このアプリについて
+
+このプロジェクトは技術記事のブックマークWebアプリ開発です。
+
+具体的には、以下の機能があります。
+
+- URLを貼るだけ: 気になった技術記事（Zenn, Qiita, 海外公式ドキュメント等）のURLを入力する。
+
+- 自動メタデータ取得: Next.jsのサーバーサイド機能（API Route）を使って、その記事のタイトル、画像（OGP）、概要を自動でスクレイピングして保存する。
+
+- タグ付け・分類: 「Java」「React」「アルゴリズム」などのタグを付けて管理する。
+
+### 使用技術 / Tech Stack
 
 本プロジェクトでは、スケーラビリティと開発効率を重視し、以下のモダンなスタックを採用しています。
 
@@ -44,7 +62,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - **Backend/BaaS**: Supabase
 - **State Management**: React Hooks
 
-### 💡 設計のポイント
+### 設計のポイント
 
 - App Router を活用したサーバーサイドレンダリングとデータ取得の最適化。
 - TypeScript による厳密な型定義。
