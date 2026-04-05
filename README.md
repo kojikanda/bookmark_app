@@ -34,3 +34,17 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## 🛠 使用技術 / Tech Stack
+
+本プロジェクトでは、スケーラビリティと開発効率を重視し、以下のモダンなスタックを採用しています。
+
+- **Frontend**: Next.js (App Router), TypeScript
+- **Styling**: Tailwind CSS, shadcn/ui
+- **Backend/BaaS**: Supabase
+- **State Management**: React Hooks
+
+### 💡 設計のポイント
+
+- App Router を活用したサーバーサイドレンダリングとデータ取得の最適化。
+- TypeScript による厳密な型定義。
