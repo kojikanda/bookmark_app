@@ -36,9 +36,7 @@
 
 ## 進捗状況
 
-### 2026-04-04 — 環境構築 〜 バックエンド API 実装完了
-
-**実施内容:**
+### これまでの実施内容
 
 #### 環境構築
 - Next.js (App Router) + TypeScript + Tailwind CSS でプロジェクト初期化
@@ -48,41 +46,51 @@
 
 #### Supabase テーブル設計・作成
 - `bookmarks` テーブル（id, url, title, description, image_url, created_at）
-- `tags` テーブル（id, name, created_at）
-- `bookmark_tags` 中間テーブル（bookmark_id, tag_id）で多対多を表現
+- `tags` テーブル（id, name, created_at）— name にユニーク制約あり
+- `bookmark_tags` 中間テーブル（bookmark_id, tag_id）で多対多を表現（CASCADE DELETE 設定済み）
 
-#### 実装済みファイル
-- `src/types/index.ts` — `Bookmark` / `Tag` / `BookmarkInsert` 型定義
-- `src/lib/supabase/client.ts` — ブラウザ用 Supabase クライアント
-- `src/lib/supabase/server.ts` — サーバー用 Supabase クライアント（Cookie 対応）
-- `src/app/api/ogp/route.ts` — OGP スクレイピング API（動作確認済み）
+#### バックエンド API
+- `src/app/api/ogp/route.ts` — OGP スクレイピング API
+- `src/app/api/bookmarks/route.ts` — GET / POST / DELETE（動作確認済み）
 
-**現在のディレクトリ構造:**
+#### フロントエンド UI
+- `src/app/page.tsx` — SSR でブックマーク一覧を取得する Server Component
+- `src/components/BookmarkClient.tsx` — state 管理を担う Client Component（タグフィルタ・追加・削除）
+- `src/components/BookmarkCard.tsx` — ブックマーク1件を表示するカード
+- `src/components/BookmarkForm.tsx` — URL・タグ入力フォーム
+- `src/components/TagFilter.tsx` — タグによるフィルタリング
+
+### 現在のディレクトリ構造
+
 ```
 src/
 ├── app/
 │   ├── api/
-│   │   ├── bookmarks/   # route.ts を実装予定（次回）
+│   │   ├── bookmarks/
+│   │   │   └── route.ts   # ✅ 実装済み
 │   │   └── ogp/
-│   │       └── route.ts # ✅ 実装済み・動作確認済み
+│   │       └── route.ts   # ✅ 実装済み
 │   ├── globals.css
 │   ├── layout.tsx
-│   └── page.tsx
+│   └── page.tsx           # ✅ 実装済み
 ├── components/
-│   └── ui/              # shadcn/ui コンポーネント置き場
+│   ├── ui/                # shadcn/ui コンポーネント置き場
+│   ├── BookmarkCard.tsx   # ✅ 実装済み
+│   ├── BookmarkClient.tsx # ✅ 実装済み
+│   ├── BookmarkForm.tsx   # ✅ 実装済み
+│   └── TagFilter.tsx      # ✅ 実装済み
 ├── lib/
 │   ├── supabase/
-│   │   ├── client.ts    # ✅ 実装済み
-│   │   └── server.ts    # ✅ 実装済み
+│   │   ├── client.ts      # ✅ 実装済み
+│   │   └── server.ts      # ✅ 実装済み
 │   └── utils.ts
 └── types/
-    └── index.ts         # ✅ 実装済み
+    └── index.ts           # ✅ 実装済み
 ```
 
-**次のステップ:**
-1. `src/app/api/bookmarks/route.ts` を実装（GET / POST / DELETE）
-2. フロントエンド UI の実装
-   - `src/components/BookmarkCard.tsx`
-   - `src/components/BookmarkForm.tsx`
-   - `src/components/TagFilter.tsx`
-   - `src/app/page.tsx`（一覧ページ）
+### 次のステップ
+
+1. 全文検索機能の実装
+   - キーワードで title / description を検索する検索バーの追加
+   - `src/components/SearchBar.tsx`
+   - Supabase の `ilike` クエリを活用

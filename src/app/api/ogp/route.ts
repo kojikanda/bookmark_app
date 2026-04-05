@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // 指定されたURLに対してHTTPリクエストを送り、HTMLを取得
     const res = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; BookmarkBot/1.0)" },
     });
@@ -28,11 +29,13 @@ export async function GET(request: NextRequest) {
     const html = await res.text();
     const $ = cheerio.load(html);
 
+    // OGP情報を取得するためのヘルパー関数
     const getMeta = (property: string) =>
       $(`meta[property="${property}"]`).attr("content") ||
       $(`meta[name="${property}"]`).attr("content") ||
       null;
 
+    // OGP情報を抽出
     const ogp = {
       title: getMeta("og:title") ?? $("title").text() ?? null,
       description: getMeta("og:description") ?? getMeta("description") ?? null,
