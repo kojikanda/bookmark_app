@@ -1,3 +1,35 @@
+# テーブル定義
+
+```sql
+-- タグテーブル
+create table tags (
+  id   uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  created_at timestamp with time zone default now()
+);
+
+-- ブックマークテーブル
+create table bookmarks (
+  id          uuid primary key default gen_random_uuid(),
+  url         text not null unique,
+  title       text,
+  description text,
+  image_url   text,
+  created_at  timestamp with time zone default now()
+);
+
+-- ブックマーク ↔ タグの中間テーブル（多対多）
+create table bookmark_tags (
+  bookmark_id uuid references bookmarks(id) on delete cascade,
+  tag_id      uuid references tags(id)      on delete cascade,
+  primary key (bookmark_id, tag_id)
+);
+```
+
+中間テーブル(bookmark_tags)でboookmarksテーブルとtagsテーブルのキーを外部キーとして登録する。
+これにより、bookmarksテーブル→tagsテーブル、tagsテーブル→bookmarksテーブルの紐づきを設定する。
+bookmarksテーブルからtagsテーブルは1対多で、逆のtagsテーブル→bookmarksテーブルも1対多なので、多対多となる。
+
 # 📚 学習メモ：OGP（Open Graph Protocol）の取得
 
 ## 1. OGP とは何か
