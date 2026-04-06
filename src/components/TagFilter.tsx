@@ -1,6 +1,7 @@
 "use client";
 
 import { Tag } from "@/types";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   tags: Tag[];
@@ -23,29 +24,25 @@ export default function TagFilter({ tags, selectedTag, onSelect }: Props) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      <button
+      <Button
+        variant={selectedTag === null ? "default" : "outline"}
+        size="sm"
         onClick={() => onSelect(null)}
-        className={`text-sm px-3 py-1 rounded-full border transition-colors ${
-          selectedTag === null
-            ? "bg-blue-600 text-white border-blue-600"
-            : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
-        }`}
+        className="rounded-full"
       >
         すべて
-      </button>
+      </Button>
 
       {tags.map((tag) => (
-        <button
+        <Button
           key={tag.id}
+          variant={selectedTag === tag.name ? "default" : "outline"}
+          size="sm"
           onClick={() => onSelect(tag.name)}
-          className={`text-sm px-3 py-1 rounded-full border transition-colors ${
-            selectedTag === tag.name
-              ? "bg-blue-600 text-white border-blue-600"
-              : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
-          }`}
+          className="rounded-full"
         >
           {tag.name}
-        </button>
+        </Button>
       ))}
     </div>
   );

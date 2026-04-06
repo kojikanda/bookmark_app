@@ -1,6 +1,10 @@
 "use client";
 
 import { Bookmark } from "@/types";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ExternalLink, Trash2 } from "lucide-react";
 
 type Props = {
   bookmark: Bookmark;
@@ -26,36 +30,33 @@ export default function BookmarkCard({ bookmark, onDelete }: Props) {
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
-      {/* OGP画像 */}
+    <Card className="overflow-hidden hover:shadow-md transition-shadow">
       {bookmark.image_url && (
-        <>
-          {/* ユーザー入力のURLを表示するため、サーバー負荷を考慮し最適化をスキップ */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={bookmark.image_url}
-            alt={bookmark.title ?? ""}
-            loading="lazy" // 画面外の画像はロードしない（表示速度と通信量の節約）
-            decoding="async" // 画像の展開を非同期で行い、スクロールのカクつきを防止
-            className="w-full h-40 object-cover"
-          />
-        </>
+        // ユーザー入力のURLを表示するため、サーバー負荷を考慮し最適化をスキップ
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={bookmark.image_url}
+          alt={bookmark.title ?? ""}
+          loading="lazy"
+          decoding="async"
+          className="w-full h-40 object-cover"
+        />
       )}
-
-      <div className="p-4 flex flex-col gap-2">
+      <CardContent className="p-4 flex flex-col gap-2">
         {/* タイトル */}
         <a
           href={bookmark.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-semibold text-blue-600 hover:underline line-clamp-2"
+          className="font-semibold text-blue-600 hover:underline line-clamp-2 flex items-start gap-1"
         >
+          <ExternalLink className="h-4 w-4 mt-0.5 shrink-0" />
           {bookmark.title ?? bookmark.url}
         </a>
 
         {/* 説明 */}
         {bookmark.description && (
-          <p className="text-sm text-gray-500 line-clamp-2">
+          <p className="text-sm text-muted-foreground line-clamp-2">
             {bookmark.description}
           </p>
         )}
@@ -63,23 +64,25 @@ export default function BookmarkCard({ bookmark, onDelete }: Props) {
         {/* タグ */}
         <div className="flex flex-wrap gap-1 mt-1">
           {bookmark.tags.map((tag) => (
-            <span
-              key={tag.id}
-              className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"
-            >
+            <Badge key={tag.id} variant="secondary">
               {tag.name}
-            </span>
+            </Badge>
           ))}
         </div>
 
         {/* 削除ボタン */}
-        <button
-          onClick={handleDelete}
-          className="self-end text-xs text-red-400 hover:text-red-600 mt-1"
-        >
-          削除
-        </button>
-      </div>
-    </div>
+        <div className="flex justify-end mt-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDelete}
+            className="text-muted-foreground hover:text-destructive h-7 px-2"
+          >
+            <Trash2 className="h-3.5 w-3.5 mr-1" />
+            削除
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

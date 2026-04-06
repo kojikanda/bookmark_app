@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import { Bookmark } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { BookmarkPlus, Loader2, AlertCircle } from "lucide-react";
 
 type Props = {
   onAdd: (bookmark: Bookmark) => void;
@@ -54,48 +60,62 @@ export default function BookmarkForm({ onAdd }: Props) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-3 p-4 bg-white border rounded-lg shadow-sm"
-    >
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-gray-700">URL</label>
-        <input
-          type="url"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://..."
-          required
-          className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-      </div>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <BookmarkPlus className="h-5 w-5" />
+          ブックマークを追加
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="url">URL</Label>
+            <Input
+              id="url"
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://..."
+              required
+            />
+          </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-gray-700">
-          タグ{" "}
-          <span className="text-gray-400 font-normal">
-            （カンマ区切りで複数入力可）
-          </span>
-        </label>
-        <input
-          type="text"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          placeholder="React, Next.js, TypeScript"
-          className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-      </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="tags">
+              タグ{" "}
+              <span className="text-muted-foreground font-normal text-xs">
+                （カンマ区切りで複数入力可）
+              </span>
+            </Label>
+            <Input
+              id="tags"
+              type="text"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="React, Next.js, TypeScript"
+            />
+          </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="bg-blue-600 text-white text-sm font-medium py-2 rounded hover:bg-blue-700 disabled:opacity-50 
-  disabled:cursor-not-allowed transition-colors"
-      >
-        {loading ? "登録中..." : "ブックマークを追加"}
-      </button>
-    </form>
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                登録中...
+              </>
+            ) : (
+              "ブックマークを追加"
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
