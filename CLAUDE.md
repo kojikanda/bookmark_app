@@ -64,6 +64,21 @@
 #### UI リファクタリング
 - 全コンポーネントを shadcn/ui（Card, Input, Label, Badge, Alert, Button）に移行
 - lucide-react アイコン（BookmarkPlus, ExternalLink, Trash2, Search 等）を導入
+- shadcn/ui は @base-ui/react ベース（Radix UI ではない）— `asChild` は使えず `render` prop を使う
+- フォームイベント型は React 19 では `React.FormEvent` が非推奨のため `NonNullable<React.ComponentProps<'form'>['onSubmit']>` を使う
+
+#### 削除確認ダイアログ
+- `BookmarkCard.tsx` の `confirm()` を shadcn/ui の `AlertDialog` に置き換え
+- 削除ボタン（Trigger）は `variant="destructive"`、削除中は両ボタンを `disabled` に設定
+
+#### Toast 通知（Sonner）
+- `sonner` をインストール、`src/app/layout.tsx` に `<Toaster richColors position="bottom-right" />` を配置
+- ブックマーク登録成功・削除成功時に `toast.success()`、失敗時に `toast.error()` を表示
+- `BookmarkForm.tsx` のインラインエラー表示（Alert）を削除し toast に一本化
+
+#### バグ修正
+- OGP 取得失敗時（存在しない URL 等）でもブックマークが登録されてしまう問題を修正
+  - `POST /api/bookmarks` で `ogpRes.ok` が false の場合は 400 を返して登録を中断するよう変更
 
 #### VSCode デバッグ環境
 - `.vscode/launch.json` を作成（server-side / client-side / full stack の3構成）
@@ -88,7 +103,7 @@ src/
 │   ├── layout.tsx
 │   └── page.tsx           # ✅ 実装済み
 ├── components/
-│   ├── ui/                # shadcn/ui コンポーネント（button, card, input, label, badge, alert）
+│   ├── ui/                # shadcn/ui コンポーネント（button, card, input, label, badge, alert, alert-dialog, sonner）
 │   ├── BookmarkCard.tsx   # ✅ 実装済み
 │   ├── BookmarkClient.tsx # ✅ 実装済み
 │   ├── BookmarkForm.tsx   # ✅ 実装済み

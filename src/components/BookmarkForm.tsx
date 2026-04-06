@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { BookmarkPlus, Loader2, AlertCircle } from "lucide-react";
+import { BookmarkPlus, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 type Props = {
   onAdd: (bookmark: Bookmark) => void;
@@ -26,7 +26,6 @@ export default function BookmarkForm({ onAdd }: Props) {
   const [url, setUrl] = useState("");
   const [tags, setTags] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // フォームの送信イベントハンドラ
   const handleSubmit: NonNullable<
@@ -35,7 +34,6 @@ export default function BookmarkForm({ onAdd }: Props) {
     // フォームのデフォルトの送信動作をキャンセル
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     const tagNames = tags
       .split(",")
@@ -49,13 +47,19 @@ export default function BookmarkForm({ onAdd }: Props) {
     });
 
     if (!res.ok) {
-      setError("登録に失敗しました。URLを確認してください。");
+      toast.error("登録に失敗しました", {
+        description: "URLを確認してください。",
+        classNames: {
+          description: "!text-red-600",
+        },
+      });
       setLoading(false);
       return;
     }
 
     const newBookmark = await res.json();
     onAdd(newBookmark);
+    toast.success("ブックマークを登録しました");
     setUrl("");
     setTags("");
     setLoading(false);
@@ -98,13 +102,6 @@ export default function BookmarkForm({ onAdd }: Props) {
               placeholder="React, Next.js, TypeScript"
             />
           </div>
-
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
 
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? (

@@ -63,7 +63,13 @@ export async function POST(request: NextRequest) {
   const ogpRes = await fetch(
     `${request.nextUrl.origin}/api/ogp?url=${encodeURIComponent(url)}`,
   );
-  const ogp = ogpRes.ok ? await ogpRes.json() : {};
+  if (!ogpRes.ok) {
+    return NextResponse.json(
+      { error: "URLにアクセスできませんでした。URLを確認してください。" },
+      { status: 400 },
+    );
+  }
+  const ogp = await ogpRes.json();
 
   // bookmarks テーブルに挿入
   const { data: bookmark, error: bookmarkError } = await supabase
@@ -100,7 +106,22 @@ export async function POST(request: NextRequest) {
       .insert({ bookmark_id: bookmark.id, tag_id: tag.id });
   }
 
-  return NextResponse.json(bookmark, { status: 201 });
+  // タグ情報を含めて再取得する
+  const { data: fullBookmark } = await supabase
+    .from("bookmarks")
+    .select(`*, bookmark_tags(tags(*))`)
+    .eq("id", bookmark.id)
+    .single();
+
+  const result = {
+    ...fullBookmark,
+    tags: (fullBookmark?.bookmark_tags ?? []).map(
+      (bt: { tags: unknown }) => bt.tags,
+    ),
+    bookmark_tags: undefined,
+  };
+
+  return NextResponse.json(result, { status: 201 });
 }
 
 /**

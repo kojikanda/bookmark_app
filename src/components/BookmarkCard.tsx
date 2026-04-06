@@ -1,10 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import { Bookmark } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { ExternalLink, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 type Props = {
   bookmark: Bookmark;
@@ -21,12 +34,28 @@ type Props = {
  * @returns ブックマークカードのJSX要素を返す。
  */
 export default function BookmarkCard({ bookmark, onDelete }: Props) {
-  // 削除ボタン押下時のイベントハンドラ
-  const handleDelete = async () => {
-    if (!confirm("削除しますか？")) return;
+  const [deleting, setDeleting] = useState(false);
 
-    await fetch(`/api/bookmarks?id=${bookmark.id}`, { method: "DELETE" });
+  // ブックマーク削除イベントハンドラ
+  const handleDelete = async () => {
+    setDeleting(true);
+
+    // APIにDELETEリクエストを送る
+    const res = await fetch(`/api/bookmarks?id=${bookmark.id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      toast.error("削除に失敗しました");
+      setDeleting(false);
+      return;
+    }
+
+    // 削除成功後、親コンポーネントに削除されたブックマークのIDを渡す
+    // 親コンポーネントはこのIDを使ってローカルの状態から削除されたブックマークを取り除く
+    // 削除したときは、setDeleting(false)は呼び出さない。
+    // なぜなら、削除されたブックマークはUIから消えるため、削除中の状態をリセットする必要がないから。
     onDelete(bookmark.id);
+    toast.success("ブックマークを削除しました");
   };
 
   return (
@@ -70,17 +99,42 @@ export default function BookmarkCard({ bookmark, onDelete }: Props) {
           ))}
         </div>
 
-        {/* 削除ボタン */}
+        {/* 削除ダイアログ */}
         <div className="flex justify-end mt-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDelete}
-            className="text-muted-foreground hover:text-destructive h-7 px-2"
-          >
-            <Trash2 className="h-3.5 w-3.5 mr-1" />
-            削除
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button variant="destructive" size="sm" className="h-7 px-2" />
+              }
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1" />
+              削除
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  ブックマークを削除しますか？
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  「{bookmark.title ?? bookmark.url}」を削除します。
+                  <br />
+                  この操作は取り消せません。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleting}>
+                  キャンセル
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {deleting ? "削除中..." : "削除する"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardContent>
     </Card>
