@@ -35,6 +35,7 @@ export default function BookmarkClient({ initialBookmarks }: Props) {
     ? bookmarks.filter((b) => b.tags.some((t) => t.name === selectedTag))
     : bookmarks;
 
+  // ブックマーク追加後の状態更新
   const handleAdd = (bookmark: Bookmark) => {
     setBookmarks((prev) => [
       { ...bookmark, tags: bookmark.tags ?? [] },
@@ -42,6 +43,7 @@ export default function BookmarkClient({ initialBookmarks }: Props) {
     ]);
   };
 
+  // ブックマーク削除後の状態更新
   const handleDelete = (id: string) => {
     setBookmarks((prev) => prev.filter((b) => b.id !== id));
   };
