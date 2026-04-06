@@ -63,7 +63,7 @@ export default function BookmarkClient({ initialBookmarks }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <BookmarkForm onAdd={handleAdd} />
+      <BookmarkForm onAdd={handleAdd} allTags={allTags} />
       <SearchBar onSearch={handleSearch} />
       <TagFilter
         tags={allTags}

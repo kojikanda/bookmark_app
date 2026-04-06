@@ -8,9 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { BookmarkPlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import TagInput from "@/components/TagInput";
+import { Tag } from "@/types";
 
 type Props = {
   onAdd: (bookmark: Bookmark) => void;
+  allTags: Tag[];
 };
 
 /**
@@ -20,12 +23,14 @@ type Props = {
  * 登録ボタンを押すとAPIにPOSTリクエストを送り、成功したら親コンポーネントに新しいブックマークを渡す。
  * @param props ブックマークが正常に登録されたときのコールバックを受け取る。
  * @param props.onAdd ブックマークが正常に登録された後に呼び出されるコールバック関数。引数として新しく登録されたブックマークの情報を受け取る。
+ * @param props.allTags ブックマークに付与された全てのタグの配列。
  * @returns ブックマーク登録フォームのJSX要素を返す。
  */
-export default function BookmarkForm({ onAdd }: Props) {
+export default function BookmarkForm({ onAdd, allTags }: Props) {
   const [url, setUrl] = useState("");
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [tagInputKey, setTagInputKey] = useState(0);
 
   // フォームの送信イベントハンドラ
   const handleSubmit: NonNullable<
@@ -35,11 +40,14 @@ export default function BookmarkForm({ onAdd }: Props) {
     e.preventDefault();
     setLoading(true);
 
-    const tagNames = tags
-      .split(",")
-      .map((t) => t.trim())
-      .filter((t) => t !== "");
+    // 送信直後にTagInputKeyの値を変更することで、TagInputコンポーネントのkeyを更新して
+    // 強制的に再レンダリングし、入力フィールドをリセットする
+    setTagInputKey((prev) => prev + 1);
 
+    // タグはTagInputコンポーネントから文字列の配列で受け取る
+    const tagNames = tags;
+
+    // APIを使用してブックマークを登録するためのPOSTリクエストを送る
     const res = await fetch("/api/bookmarks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -61,12 +69,12 @@ export default function BookmarkForm({ onAdd }: Props) {
     onAdd(newBookmark);
     toast.success("ブックマークを登録しました");
     setUrl("");
-    setTags("");
+    setTags([]);
     setLoading(false);
   };
 
   return (
-    <Card>
+    <Card style={{ overflow: "visible" }}>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <BookmarkPlus className="h-5 w-5" />
@@ -88,18 +96,12 @@ export default function BookmarkForm({ onAdd }: Props) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="tags">
-              タグ{" "}
-              <span className="text-muted-foreground font-normal text-xs">
-                （カンマ区切りで複数入力可）
-              </span>
-            </Label>
-            <Input
-              id="tags"
-              type="text"
+            <Label>タグ</Label>
+            <TagInput
+              key={tagInputKey}
               value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="React, Next.js, TypeScript"
+              onChange={setTags}
+              allTags={allTags}
             />
           </div>
 
