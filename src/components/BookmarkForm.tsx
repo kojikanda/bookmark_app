@@ -29,7 +29,9 @@ export default function BookmarkForm({ onAdd }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   // フォームの送信イベントハンドラ
-  const handleSubmit = async (e: React.SyntheticEvent) => {
+  const handleSubmit: NonNullable<
+    React.ComponentProps<"form">["onSubmit"]
+  > = async (e) => {
     // フォームのデフォルトの送信動作をキャンセル
     e.preventDefault();
     setLoading(true);

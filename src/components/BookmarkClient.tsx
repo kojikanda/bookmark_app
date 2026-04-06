@@ -5,6 +5,7 @@ import { Bookmark, Tag } from "@/types";
 import BookmarkForm from "@/components/BookmarkForm";
 import BookmarkCard from "@/components/BookmarkCard";
 import TagFilter from "@/components/TagFilter";
+import SearchBar from "@/components/SearchBar";
 
 type Props = {
   initialBookmarks: Bookmark[];
@@ -48,22 +49,41 @@ export default function BookmarkClient({ initialBookmarks }: Props) {
     setBookmarks((prev) => prev.filter((b) => b.id !== id));
   };
 
+  // 検索実行：APIを呼び出してbookmarks stateを更新する
+  const handleSearch = async (query: string) => {
+    const url = query
+      ? `/api/bookmarks?q=${encodeURIComponent(query)}`
+      : "/api/bookmarks";
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data: Bookmark[] = await res.json();
+    setBookmarks(data);
+    setSelectedTag(null); // 検索のたびにタグフィルタをリセット
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <BookmarkForm onAdd={handleAdd} />
+      <SearchBar onSearch={handleSearch} />
       <TagFilter
         tags={allTags}
         selectedTag={selectedTag}
         onSelect={setSelectedTag}
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((bookmark) => (
-          <BookmarkCard
-            key={bookmark.id}
-            bookmark={bookmark}
-            onDelete={handleDelete}
-          />
-        ))}
+        {filtered.length > 0 ? (
+          filtered.map((bookmark) => (
+            <BookmarkCard
+              key={bookmark.id}
+              bookmark={bookmark}
+              onDelete={handleDelete}
+            />
+          ))
+        ) : (
+          <p className="col-span-full text-center text-muted-foreground py-8">
+            ブックマークが見つかりません
+          </p>
+        )}
       </div>
     </div>
   );

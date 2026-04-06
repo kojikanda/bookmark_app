@@ -55,10 +55,24 @@
 
 #### フロントエンド UI
 - `src/app/page.tsx` — SSR でブックマーク一覧を取得する Server Component
-- `src/components/BookmarkClient.tsx` — state 管理を担う Client Component（タグフィルタ・追加・削除）
+- `src/components/BookmarkClient.tsx` — state 管理を担う Client Component（タグフィルタ・追加・削除・検索）
 - `src/components/BookmarkCard.tsx` — ブックマーク1件を表示するカード
 - `src/components/BookmarkForm.tsx` — URL・タグ入力フォーム
 - `src/components/TagFilter.tsx` — タグによるフィルタリング
+- `src/components/SearchBar.tsx` — キーワード検索バー
+
+#### UI リファクタリング
+- 全コンポーネントを shadcn/ui（Card, Input, Label, Badge, Alert, Button）に移行
+- lucide-react アイコン（BookmarkPlus, ExternalLink, Trash2, Search 等）を導入
+
+#### VSCode デバッグ環境
+- `.vscode/launch.json` を作成（server-side / client-side / full stack の3構成）
+- Turbopack 内部のソースマップ警告は無害であることを確認済み
+
+#### 全文検索
+- `GET /api/bookmarks?q=keyword` — Supabase の `ilike` で title・description を OR 検索
+- `src/components/SearchBar.tsx` — 検索フォーム（Enter キー / 検索ボタン対応）
+- `BookmarkClient.tsx` の `handleSearch` で API を呼び出し bookmarks state を更新
 
 ### 現在のディレクトリ構造
 
@@ -67,17 +81,18 @@ src/
 ├── app/
 │   ├── api/
 │   │   ├── bookmarks/
-│   │   │   └── route.ts   # ✅ 実装済み
+│   │   │   └── route.ts   # ✅ 実装済み（GET に ?q= 検索対応済み）
 │   │   └── ogp/
 │   │       └── route.ts   # ✅ 実装済み
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx           # ✅ 実装済み
 ├── components/
-│   ├── ui/                # shadcn/ui コンポーネント置き場
+│   ├── ui/                # shadcn/ui コンポーネント（button, card, input, label, badge, alert）
 │   ├── BookmarkCard.tsx   # ✅ 実装済み
 │   ├── BookmarkClient.tsx # ✅ 実装済み
 │   ├── BookmarkForm.tsx   # ✅ 実装済み
+│   ├── SearchBar.tsx      # ✅ 実装済み
 │   └── TagFilter.tsx      # ✅ 実装済み
 ├── lib/
 │   ├── supabase/
@@ -90,7 +105,4 @@ src/
 
 ### 次のステップ
 
-1. 全文検索機能の実装
-   - キーワードで title / description を検索する検索バーの追加
-   - `src/components/SearchBar.tsx`
-   - Supabase の `ilike` クエリを活用
+未定（目的に記載の主要機能はすべて実装完了）

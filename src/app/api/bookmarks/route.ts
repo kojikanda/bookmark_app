@@ -5,20 +5,24 @@ import { createClient } from "@/lib/supabase/server";
  * ブックマーク一覧をタグ情報込みで取得するAPIエンドポイント
  * @returns ブックマークの配列をJSON形式で返す。各ブックマークには関連するタグの情報も含まれる。エラーが発生した場合はエラーメッセージを返す。
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   const supabase = await createClient();
+  const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
 
-  const { data, error } = await supabase
-    .from("bookmarks")
-    .select(
-      `
-        *,                                                                                                                                   
-        bookmark_tags(
-          tags(*)                                                                                                                            
-        )         
-      `,
-    )
-    .order("created_at", { ascending: false });
+  let query = supabase.from("bookmarks").select(
+    `         
+      *,
+      bookmark_tags(
+        tags(*)
+       )
+    `,
+  );
+
+  if (q) {
+    query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
