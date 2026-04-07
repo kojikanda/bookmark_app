@@ -51,6 +51,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
 
+  // 認証チェック
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   // リクエストボディから url とタグ名の配列を取得
   const body = await request.json();
   const { url, tags: tagNames = [] }: { url: string; tags: string[] } = body;
@@ -79,6 +87,7 @@ export async function POST(request: NextRequest) {
       title: ogp.title ?? null,
       description: ogp.description ?? null,
       image_url: ogp.image_url ?? null,
+      user_id: user.id,
     })
     .select()
     .single();
@@ -91,19 +100,30 @@ export async function POST(request: NextRequest) {
   for (const name of tagNames) {
     if (!name.trim()) continue;
 
-    // upsert: 同名タグが存在すれば取得、なければ挿入
-    const { data: tag, error: tagError } = await supabase
+    // まず既存タグを検索
+    let { data: tag } = await supabase
       .from("tags")
-      .upsert({ name: name.trim() }, { onConflict: "name" })
       .select()
+      .eq("name", name.trim())
+      .eq("user_id", user.id)
       .single();
 
-    if (tagError || !tag) continue;
+    // 存在しない場合のみ新規作成
+    if (!tag) {
+      const { data: newTag, error: tagError } = await supabase
+        .from("tags")
+        .insert({ name: name.trim(), user_id: user.id })
+        .select()
+        .single();
+
+      if (tagError || !newTag) continue;
+      tag = newTag;
+    }
 
     // bookmark_tags 中間テーブルに紐付けを挿入
     await supabase
       .from("bookmark_tags")
-      .insert({ bookmark_id: bookmark.id, tag_id: tag.id });
+      .insert({ bookmark_id: bookmark.id, tag_id: tag.id, user_id: user.id });
   }
 
   // タグ情報を含めて再取得する
@@ -131,6 +151,14 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   const supabase = await createClient();
+
+  // 認証チェック
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const id = request.nextUrl.searchParams.get("id");
 

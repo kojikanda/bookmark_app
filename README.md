@@ -59,12 +59,13 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 - **Frontend**: Next.js (App Router), TypeScript
 - **Styling**: Tailwind CSS, shadcn/ui
-- **Backend/BaaS**: Supabase
+- **Backend/BaaS**: Supabase (Auth, PostgreSQL, Row Level Security)
 - **State Management**: React Hooks
 
 ### 設計のポイント
 
 - App Router を活用したサーバーサイドレンダリングとデータ取得の最適化。
+- Supabase の RLS（行単位セキュア）を用いたセキュリティ設計。
 - TypeScript による厳密な型定義。
 
 ### ユーザ認証について

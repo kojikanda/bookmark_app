@@ -49,9 +49,9 @@
 
 #### Supabase テーブル設計・作成
 
-- `bookmarks` テーブル（id, url, title, description, image_url, created_at）
-- `tags` テーブル（id, name, created_at）— name にユニーク制約あり
-- `bookmark_tags` 中間テーブル（bookmark_id, tag_id）で多対多を表現（CASCADE DELETE 設定済み）
+- `bookmarks` テーブル（id, url, title, description, image_url, created_at, user_id）— (url, user_id) に複合ユニーク制約
+- `tags` テーブル（id, name, created_at, user_id）— (name, user_id) に複合ユニーク制約（ユーザーごとにタグを分離）
+- `bookmark_tags` 中間テーブル（bookmark_id, tag_id, user_id）で多対多を表現（CASCADE DELETE 設定済み）
 
 #### バックエンド API
 
@@ -117,6 +117,24 @@
 - `src/components/SearchBar.tsx` — 検索フォーム（Enter キー / 検索ボタン対応）
 - `BookmarkClient.tsx` の `handleSearch` で API を呼び出し bookmarks state を更新
 
+#### 認証機能（Supabase Auth）
+
+- `src/middleware.ts` — セッション管理・未認証ユーザーを `/login` へリダイレクト
+  - `/api/` ルートはリダイレクト対象外（内部フェッチが `/login` にリダイレクトされる問題を回避）
+  - `/login` / `/signup` は未認証でもアクセス可能
+- `src/app/login/page.tsx` — メール・パスワードによるログインページ
+- `src/app/signup/page.tsx` — アカウント登録ページ（登録後は即ログイン）
+- `src/components/LogoutButton.tsx` — ログアウトボタン（Client Component）
+- `src/app/page.tsx` — ヘッダーにログイン中のメールアドレスと `LogoutButton` を表示
+
+#### RLS（Row Level Security）
+
+- 3テーブル（`bookmarks` / `tags` / `bookmark_tags`）すべてで RLS を有効化
+- タグはユーザーごとに分離（グローバル共有なし）
+- **注意点・ハマりどころ：**
+  - `tags` テーブルの `upsert` は競合時に `UPDATE` が走り、`UPDATE` ポリシー未設定だと RLS エラーになる → `upsert` をやめて「SELECT して存在しなければ INSERT」に変更
+  - API Route 内で `fetch('/api/ogp')` を呼ぶ内部リクエストにはクッキーが含まれず Middleware に弾かれる → `/api/` パスを Middleware のリダイレクト対象外にすることで解決
+
 ### 現在のディレクトリ構造
 
 ```
@@ -124,17 +142,22 @@ src/
 ├── app/
 │   ├── api/
 │   │   ├── bookmarks/
-│   │   │   └── route.ts   # ✅ 実装済み（GET に ?q= 検索対応済み）
+│   │   │   └── route.ts   # ✅ 実装済み（認証チェック・user_id 挿入対応済み）
 │   │   └── ogp/
 │   │       └── route.ts   # ✅ 実装済み
+│   ├── login/
+│   │   └── page.tsx       # ✅ 実装済み
+│   ├── signup/
+│   │   └── page.tsx       # ✅ 実装済み
 │   ├── globals.css
 │   ├── layout.tsx
-│   └── page.tsx           # ✅ 実装済み
+│   └── page.tsx           # ✅ 実装済み（ユーザー情報・ログアウトボタン追加済み）
 ├── components/
 │   ├── ui/                # shadcn/ui コンポーネント（button, card, input, label, badge, alert, alert-dialog, sonner, command）
 │   ├── BookmarkCard.tsx   # ✅ 実装済み
 │   ├── BookmarkClient.tsx # ✅ 実装済み
 │   ├── BookmarkForm.tsx   # ✅ 実装済み
+│   ├── LogoutButton.tsx   # ✅ 実装済み
 │   ├── SearchBar.tsx      # ✅ 実装済み
 │   ├── TagFilter.tsx      # ✅ 実装済み
 │   └── TagInput.tsx       # ✅ 実装済み
@@ -143,10 +166,11 @@ src/
 │   │   ├── client.ts      # ✅ 実装済み
 │   │   └── server.ts      # ✅ 実装済み
 │   └── utils.ts
+├── middleware.ts           # ✅ 実装済み
 └── types/
-    └── index.ts           # ✅ 実装済み
+    └── index.ts           # ✅ 実装済み（user_id フィールド追加済み）
 ```
 
 ### 次のステップ
 
-未定（目的に記載の主要機能はすべて実装完了）
+未定

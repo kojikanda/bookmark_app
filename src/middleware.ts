@@ -45,9 +45,10 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // 未ログインユーザーが保護ページにアクセスしたらログインページへリダイレクト
-  // /loginや/signupなどのパブリックなパスは除外する
+  // /login, /signup, /apiなどのパブリックなパスは除外する
   const publicPaths = ["/login", "/signup"];
-  if (!user && !publicPaths.includes(request.nextUrl.pathname)) {
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
+  if (!user && !isApiRoute && !publicPaths.includes(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

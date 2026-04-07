@@ -5,6 +5,7 @@
 // Tagテーブル型宣言
 export type Tag = {
   id: string;
+  user_id: string;
   name: string;
   created_at: string;
 };
@@ -12,6 +13,7 @@ export type Tag = {
 // Bookmarkテーブル型宣言
 export type Bookmark = {
   id: string;
+  user_id: string;
   url: string;
   title: string | null;
   description: string | null;
