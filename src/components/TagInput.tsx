@@ -67,17 +67,24 @@ export default function TagInput({ value, onChange, allTags }: Props) {
   // キーボードイベントのハンドラ
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
+      // ESCAPEキーでドロップダウンを閉じる
       setOpen(false);
       setFocusedIndex(-1);
     } else if (e.key === "ArrowDown") {
-      e.preventDefault(); // ページスクロールを防ぐ
+      // 下矢印キーで次のアイテムにフォーカス
+      // ページスクロールを防ぐ
+      e.preventDefault();
       if (!open) setOpen(true);
       setFocusedIndex((prev) => Math.min(prev + 1, navItems.length - 1));
     } else if (e.key === "ArrowUp") {
+      // 上矢印キーで前のアイテムにフォーカス
+      // ページスクロールを防ぐ
       e.preventDefault();
       setFocusedIndex((prev) => Math.max(prev - 1, -1));
     } else if (e.key === "Enter" && focusedIndex >= 0) {
-      e.preventDefault(); // フォーム送信を防ぐ
+      // Enterキーで選択中のアイテムを選択
+      // フォーム送信を防ぐ
+      e.preventDefault();
       navItems[focusedIndex]?.onSelect();
       setOpen(false);
     }

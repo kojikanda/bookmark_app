@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { Bookmark, Tag } from "@/types";
 import BookmarkClient from "@/components/BookmarkClient";
+import LogoutButton from "@/components/LogoutButton";
 import { Bookmark as BookmarkIcon } from "lucide-react";
 
 /**
@@ -27,12 +28,23 @@ export default async function Home() {
     bookmark_tags: undefined,
   }));
 
+  // サーバーコンポーネント内でユーザー情報を取得する
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <main className="min-h-screen bg-muted/40">
       <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-6">
-        <div className="flex items-center gap-2">
-          <BookmarkIcon className="h-7 w-7 text-primary" />
-          <h1 className="text-2xl font-bold">技術記事ブックマーク</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BookmarkIcon className="h-7 w-7 text-primary" />
+            <h1 className="text-2xl font-bold">技術記事ブックマーク</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">{user?.email}</span>
+            <LogoutButton />
+          </div>
         </div>
         <BookmarkClient initialBookmarks={bookmarks} />
       </div>

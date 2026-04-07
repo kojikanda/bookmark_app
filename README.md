@@ -66,3 +66,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 - App Router を活用したサーバーサイドレンダリングとデータ取得の最適化。
 - TypeScript による厳密な型定義。
+
+### ユーザ認証について
+
+- 本アプリはポートフォリオとして作成した個人利用のWebアプリであり、ユーザ認証でメール認証を行う場合、Supabaseの仕様により無料版の場合はメール送信できる数に制約があることから、あえてメール認証をスキップする設定としています。
