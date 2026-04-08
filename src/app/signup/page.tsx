@@ -39,6 +39,9 @@ export default function SignupPage() {
           description: "!text-red-600",
         },
       });
+
+      // エラー時のみローディング状態を解除する（成功時はリダイレクトするため不要）
+      setLoading(false);
     } else {
       toast.success("ユーザ登録に成功しました！");
       // ログイン画面ではなく、アプリのメイン画面へ直接飛ばす
@@ -46,8 +49,6 @@ export default function SignupPage() {
       // セッション情報を反映させるためにサーバーコンポーネントのキャッシュを破棄して再取得する
       router.refresh();
     }
-
-    setLoading(false);
   };
 
   return (
