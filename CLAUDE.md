@@ -135,6 +135,33 @@
   - `tags` テーブルの `upsert` は競合時に `UPDATE` が走り、`UPDATE` ポリシー未設定だと RLS エラーになる → `upsert` をやめて「SELECT して存在しなければ INSERT」に変更
   - API Route 内で `fetch('/api/ogp')` を呼ぶ内部リクエストにはクッキーが含まれず Middleware に弾かれる → `/api/` パスを Middleware のリダイレクト対象外にすることで解決
 
+#### Vercel デプロイ・本番環境対応
+
+- Vercel へデプロイ済み（本番環境稼働中）
+
+#### 本番環境バグ修正・UX 改善
+
+- **Next.js 16 対応: middleware → proxy へリネーム**
+  - Next.js 16 で `middleware` ファイル規約が廃止され `proxy` に変更
+  - `src/middleware.ts` → `src/proxy.ts` にリネーム
+  - エクスポート関数名も `middleware` → `proxy` に変更
+  - **注意点：** ファイル名だけでなく関数名も変更が必要（関数名が `middleware` のままだと別エラーが発生）
+
+- **ログイン UX 改善：ページ遷移完了までローディング表示を維持**
+  - `router.push()` はページ遷移の完了を待たないため、遷移中にボタンが「ログイン」表示に戻ってしまう問題を修正
+  - `setLoading(false)` をエラー時のみ呼ぶよう変更（ログイン成功時は `loading` を `true` のまま維持）
+  - ページが破棄されるまで「ログイン中...」表示が継続する
+
+- **フォント修正：Safari/iOS などで明朝体になる問題の解消**
+  - `globals.css` の `body` に `font-family` を直接指定してゴシック体に統一
+  - 日本語フォントスタック：`"Hiragino Sans"`, `"Hiragino Kaku Gothic ProN"`, `"Yu Gothic"`, `"YuGothic"`, `"Meiryo"`, `sans-serif`
+  - **原因：** Next.js の `next/font` が自動生成する `__Geist_Fallback_*` フォントが `local('Times New Roman')` にマップされており、日本語文字に明朝体が適用されていた
+
+- **レスポンシブ対応：スマホでのヘッダーレイアウト修正**
+  - スマホ幅でタイトルが3行に折り返される問題を修正
+  - `src/app/page.tsx` のヘッダー div を `flex-col sm:flex-row sm:items-center sm:justify-between` に変更
+  - スマホではタイトルの下にメールアドレス＋ログアウトボタンが縦積みで表示される
+
 ### 現在のディレクトリ構造
 
 ```
@@ -146,12 +173,12 @@ src/
 │   │   └── ogp/
 │   │       └── route.ts   # ✅ 実装済み
 │   ├── login/
-│   │   └── page.tsx       # ✅ 実装済み
+│   │   └── page.tsx       # ✅ 実装済み（ログイン成功時のローディング維持対応済み）
 │   ├── signup/
 │   │   └── page.tsx       # ✅ 実装済み
-│   ├── globals.css
+│   ├── globals.css        # ✅ 日本語ゴシック体フォント設定済み
 │   ├── layout.tsx
-│   └── page.tsx           # ✅ 実装済み（ユーザー情報・ログアウトボタン追加済み）
+│   └── page.tsx           # ✅ 実装済み（レスポンシブヘッダー対応済み）
 ├── components/
 │   ├── ui/                # shadcn/ui コンポーネント（button, card, input, label, badge, alert, alert-dialog, sonner, command）
 │   ├── BookmarkCard.tsx   # ✅ 実装済み
@@ -166,7 +193,7 @@ src/
 │   │   ├── client.ts      # ✅ 実装済み
 │   │   └── server.ts      # ✅ 実装済み
 │   └── utils.ts
-├── middleware.ts           # ✅ 実装済み
+├── proxy.ts               # ✅ 実装済み（Next.js 16 対応、旧 middleware.ts）
 └── types/
     └── index.ts           # ✅ 実装済み（user_id フィールド追加済み）
 ```

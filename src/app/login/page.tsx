@@ -44,14 +44,15 @@ export default function LoginPage() {
           description: "!text-red-600",
         },
       });
+
+      // エラー時のみローディング状態を解除する（成功時はリダイレクトするため不要）
+      setLoading(false);
     } else {
       toast.success("ログインしました");
       router.push("/");
       // サーバーコンポーネントのキャッシュを破棄して再取得することで、ユーザー情報が更新されるようにする
       router.refresh();
     }
-
-    setLoading(false);
   };
 
   return (

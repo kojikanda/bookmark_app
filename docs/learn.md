@@ -1,5 +1,7 @@
 # テーブル定義
 
+## 1. 開発当初のテーブル定義
+
 ```sql
 -- タグテーブル
 create table tags (
@@ -29,6 +31,71 @@ create table bookmark_tags (
 中間テーブル(bookmark_tags)でboookmarksテーブルとtagsテーブルのキーを外部キーとして登録する。<br>
 これにより、bookmarksテーブル→tagsテーブル、tagsテーブル→bookmarksテーブルの紐づきを設定する。<br>
 bookmarksテーブルからtagsテーブルは1対多で、逆のtagsテーブル→bookmarksテーブルも1対多なので、多対多となる。
+
+## 2. RLS対応
+
+RLS対応のため、各テーブルにカラム：user_idを追加し、テーブルに対してRLSを有効化して、RLSポリシーを設定する。
+
+具体的には以下SQLを実行する。
+
+```sql
+-- 1. user_idカラム追加
+-- bookmarks
+ALTER TABLE bookmarks
+  ADD COLUMN user_id uuid REFERENCES auth.users(id) NOT NULL DEFAULT auth.uid();
+
+-- tags
+ALTER TABLE tags
+  ADD COLUMN user_id uuid REFERENCES auth.users(id) NOT NULL DEFAULT auth.uid();
+
+-- bookmark_tags
+ALTER TABLE bookmark_tags
+  ADD COLUMN user_id uuid REFERENCES auth.users(id) NOT NULL DEFAULT auth.uid();
+
+-- 2. tags, bookmarks のユニーク制約を変更
+-- ユーザーごとに同じタグ名を持てるよう (name, user_id)の複合ユニーク制約に変更する。
+
+-- tags
+-- 既存のユニーク制約を削除
+ALTER TABLE tags DROP CONSTRAINT IF EXISTS tags_name_key;
+-- 複合ユニーク制約を追加
+ALTER TABLE tags ADD CONSTRAINT tags_name_user_id_key UNIQUE (name, user_id);
+
+-- bookmarks
+-- 既存のユニーク制約を削除
+ALTER TABLE bookmarks DROP CONSTRAINT IF EXISTS bookmarks_url_key;
+-- 複合ユニーク制約を追加
+ALTER TABLE bookmarks ADD CONSTRAINT bookmarks_url_user_id_key UNIQUE (url, user_id);
+
+-- 3. RLSを有効化
+ALTER TABLE bookmarks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookmark_tags ENABLE ROW LEVEL SECURITY;
+
+-- 4. RLSポリシーを設定
+-- bookmarks
+CREATE POLICY "自分のブックマークのみ参照" ON bookmarks
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "自分のブックマークのみ追加" ON bookmarks
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "自分のブックマークのみ削除" ON bookmarks
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- tags
+CREATE POLICY "自分のタグのみ参照" ON tags
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "自分のタグのみ追加" ON tags
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- bookmark_tags（前回から変更：シンプルになる）
+CREATE POLICY "自分のbookmark_tagsのみ参照" ON bookmark_tags
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "自分のbookmark_tagsのみ追加" ON bookmark_tags
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "自分のbookmark_tagsのみ削除" ON bookmark_tags
+  FOR DELETE USING (auth.uid() = user_id);
+```
+
 <br>
 
 ---
@@ -461,3 +528,112 @@ supabaseResponse.cookies.set(name, value, options);
 ```
 
 両方に書かないと、「今回のリクエスト中は古いトークンで動く」「次回のリクエストからは新しいトークンになる」という不整合が起きてしまう。
+
+<br>
+
+---
+
+<br>
+
+# Vercelへのデプロイ
+
+## 1. GitHubにプッシュする
+
+Vercelでは、GitHubのリポジトリをそのままインポートすることが可能。
+
+## 2. Vercelにログイン
+
+## 3. GitHubのリポジトリをインポート
+
+Add Newボタン＞Projectからインポートが可能。
+
+最初にGitHubのどのリポジトリをインポートするかを選択する。<br>
+選択できない/選択したいリポジトリの表示が無いときは、
+「Add GitHub Account」から画面下のRepository accessで、プッシュしているリポジトリを選択することができる。
+
+Vercelにインポートしたいリポジトリが表示されたら、importボタンをクリック。
+
+## 4. 環境変数の設定
+
+Environment Variablesで、.envファイルに設定したAPIキーなどの環境変数を設定する。
+.envファイルを直接指定して、読み込ませることも可能。
+
+## 5. デプロイ実行
+
+Deployボタンをクリックして、デプロイを実行する。<br>
+デプロイ完了までは少し時間がかかる。
+
+## 6. デプロイ確認
+
+プレビュー画面がリンクになっており、クリックすると公開されたアプリにアクセスすることができる。
+
+## 7. Supabaseの設定
+
+Supabase側で、公開されたアプリのURLを指定する必要がある。
+
+Authentication＞URL ConfigurationのSite URLとRedirect URLsを、公開されたアプリのURL(https://ドメイン)を指定する。
+
+## 8. 独自ドメインの指定
+
+### Vercel 側のドメイン追加設定
+
+まず、Vercelに対して「このドメインでアクセスが来たら、このプロジェクトを表示してね」と教える作業を行う。
+
+左サイドバーの 「Domains」 を選択する。<br>
+「Add Existing Domein」ボタンをクリックし、使いたいドメインを入力する。<br>
+プロジェクトは今回利用するプロジェクトを指定する。<br>
+
+画面に設定したドメインの設定と、「Invalid Configuration」という表示が出る。<br>
+ドメインの設定を開き、CNAMEのnameとvalueをメモする。<br>
+今回CNAMEのnameは「bookmarkapp」で説明する。
+
+### ドメイン管理会社での DNS 設定
+
+次に、世界中のインターネットに対して「bookmarkapp へのアクセスは Vercel に飛ばして」と交通整理をする設定を行う。
+
+ドメインを購入したサービス（お名前.com、Cloudflare、Google Domains等）の管理画面にログインする。
+今回はお名前.comで説明する。
+
+#### 1. お名前.com Naviにログインする
+
+#### 2. DNSレコードを設定する
+
+まずは、住所となるDNSレコード設定を行う。
+
+##### 2-1. お名前.comのTOP画面から、ネームサーバ/DNS＞ドメインDNS設定を選択する
+
+##### 2-2. 対象のドメインの右側にある、「ドメインDNS」のボタンをクリックする
+
+##### 2-3. DNSレコード設定をクリックする
+
+##### 2-4. レコードを入力する
+
+- ホスト名: bookmarkapp（CNAMEのname）
+- Type: CNAME（プルダウンから選択）
+- TTL: 3600（デフォルトのままでOK）
+- VALUE: Vercelで示されたCNAMEのvalue（ただし、末尾の「.」を省く）
+- 状態: 有効
+
+追加ボタンを押下して、追加する。
+
+##### 2-5. 設定を保存する
+
+「確認画面へ進む」 ＞ 「設定する」 をクリックして完了。
+
+#### 3. ネームサーバ設定を設定する
+
+次に、住所を置く棚となるネームサーバの設定を行う。
+
+##### 3-1. お名前.comのTOP画面から、ネームサーバ/DNS＞ネームサーバ設定を選択する。
+
+##### 3-2. 対象のドメイン名のチェックボックスをチェックする
+
+##### 3-3. お名前.comのネームサーバを使うのラジオボタンをチェックする
+
+##### 3-4. 設定を保存する
+
+「確認」 ＞ 「設定する」 をクリックして完了。
+
+### Supabaseにドメインを反映
+
+「7. Supabaseの設定」と同様に、設定した新たなドメインを設定する。

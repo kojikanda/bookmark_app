@@ -36,7 +36,7 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-muted/40">
       <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex items-center gap-2">
             <BookmarkIcon className="h-7 w-7 text-primary" />
             <h1 className="text-2xl font-bold">技術記事ブックマーク</h1>

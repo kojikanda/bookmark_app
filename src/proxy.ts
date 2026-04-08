@@ -8,7 +8,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * @param request Next.jsのNextRequestオブジェクト
  * @returns NextResponseオブジェクト（必要に応じてリダイレクトを含む）
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // レスポンスを一旦作成（後でクッキーを書き込むために必要）
   let supabaseResponse = NextResponse.next({
     request,
