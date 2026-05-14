@@ -162,6 +162,20 @@
   - `src/app/page.tsx` のヘッダー div を `flex-col sm:flex-row sm:items-center sm:justify-between` に変更
   - スマホではタイトルの下にメールアドレス＋ログアウトボタンが縦積みで表示される
 
+#### Supabase Data API の明示的 GRANT 設定
+
+- Supabase の仕様変更（2026年10月30日より既存プロジェクトにも適用）に対応
+  - 変更内容：`public` スキーマのテーブルがデータAPIにデフォルトで公開されなくなる
+  - 対応：3テーブルすべてに `authenticated` ロールへの明示的 GRANT を Supabase SQL Editor で実行済み
+  ```sql
+  grant select, insert, update, delete on public.bookmarks to authenticated;
+  grant select, insert, update, delete on public.tags to authenticated;
+  grant select, insert, update, delete on public.bookmark_tags to authenticated;
+  ```
+
+  - **注意：** 今後新しいテーブルを作成する際は、テーブル作成と同時に GRANT も実行すること
+  - `anon` ロールへの GRANT は不要（このアプリは認証必須のため）
+
 ### 現在のディレクトリ構造
 
 ```
